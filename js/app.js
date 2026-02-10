@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         initialLoadComplete = true;
         if (typeof window.showNotification === 'function') {
-            window.showNotification('Welcome! Real-time sync is active 🔄', 'info');
+            window.showNotification('Hello GG, just a reminder, I LOVE YOU ', 'info');
         }
     }, 1000);
 });
@@ -1041,3 +1041,4 @@ window.initiateSearch = initiateSearch;
 window.showNotification = showNotification;
 
 console.log('✅ App.js loaded successfully with real-time sync and fixed sorting! 🔄');
+
