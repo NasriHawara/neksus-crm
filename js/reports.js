@@ -917,4 +917,3 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-console.log('✅ Reports module loaded successfully!');
