@@ -22,6 +22,10 @@
             to { transform: translateX(100%); opacity: 0; }
         }
     </style>
+
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
 </head>
 <body>
     <div class="app-container">
@@ -217,6 +221,28 @@
 
     <!-- Quill.js for Rich Text Editor -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-</body>
+    <script>
+        if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log('Service Worker registered!'))
+    .catch(err => console.log('Service Worker registration failed:', err));
+}
+    </script>
 
+    <script>
+        // Cursor trail effect
+document.addEventListener('mousemove', (e) => {
+  const dot = document.createElement('div');
+  dot.className = 'cursor-dot';
+  dot.style.left = e.pageX + 'px';
+  dot.style.top = e.pageY + 'px';
+  document.body.appendChild(dot);
+
+  // Remove dot after animation
+  setTimeout(() => {
+    dot.remove();
+  }, 1000);
+});
+    </script>
+</body>
 </html>
