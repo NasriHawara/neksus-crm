@@ -11,6 +11,7 @@ let taskFilters = {
 
 let currentPage = 1;
 const itemsPerPage = 10;
+let showHistory = false; // Track if showing history view
 
 // Load Tasks Page
 window.loadTasksPage = function() {
@@ -41,6 +42,13 @@ function renderTasksPage() {
     const content = document.getElementById('pageContent');
     let filteredTasks = filterAndSortTasks();
 
+    // Filter tasks based on history view
+    if (showHistory) {
+        filteredTasks = filteredTasks.filter(task => task.status === 'done');
+    } else {
+        filteredTasks = filteredTasks.filter(task => task.status !== 'done');
+    }
+
     // Pagination
     const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -50,8 +58,17 @@ function renderTasksPage() {
     content.innerHTML = `
         <div class=\"card\">
             <div class=\"card-header\">
-                <h3>All Tasks (${filteredTasks.length})</h3>
+                <h3>${showHistory ? 'Completed Tasks' : 'Active Tasks'} (${filteredTasks.length})</h3>
                 <div style=\"display: flex; gap: 12px;\">
+                    <button class=\"button ${showHistory ? 'primary' : 'secondary'}\" onclick=\"toggleHistoryView()\">
+                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" style=\"margin-right: 8px;\">
+                            ${showHistory ? 
+                                '<path d=\"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><polyline points=\"9 22 9 12 15 12 15 22\"/>' : 
+                                '<circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 16 14\"/>'
+                            }
+                        </svg>
+                        ${showHistory ? 'Back to Active' : 'History'}
+                    </button>
                     <button class=\"button secondary\" onclick=\"exportTasks()\">
                         <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" style=\"margin-right: 8px;\">
                             <path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/>
@@ -60,13 +77,15 @@ function renderTasksPage() {
                         </svg>
                         Export CSV
                     </button>
-                    <button class=\"primary-button\" onclick=\"openAddTaskModal()\">
-                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
-                            <line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/>
-                            <line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/>
-                        </svg>
-                        Add Task
-                    </button>
+                    ${!showHistory ? `
+                        <button class=\"primary-button\" onclick=\"openAddTaskModal()\">
+                            <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+                                <line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/>
+                                <line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/>
+                            </svg>
+                            Add Task
+                        </button>
+                    ` : ''}
                 </div>
             </div>
 
@@ -84,6 +103,7 @@ function renderTasksPage() {
                 </div>
 
                 <!-- Modern Filter Pills - Status -->
+                ${!showHistory ? `
                 <div style=\"margin-bottom: 16px;\">
                     <div style=\"display: flex; align-items: center; flex-wrap: wrap; gap: 8px;\">
                         <span style=\"font-size: 13px; color: var(--text-secondary); margin-right: 8px; font-weight: 500;\">Status:</span>
@@ -114,16 +134,11 @@ function renderTasksPage() {
                                 </svg>
                                 Review
                             </button>
-                            <button class=\"filter-pill ${taskFilters.status === 'done' ? 'active' : ''}\" onclick=\"handleTaskStatusFilter({target: {value: 'done'}})\">
-                                <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" style=\"margin-right: 6px;\">
-                                    <path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"/>
-                                    <polyline points=\"22 4 12 14.01 9 11.01\"/>
-                                </svg>
-                                Done
-                            </button>
+
                         </div>
                     </div>
                 </div>
+                ` : ''}
 
                 <!-- Modern Filter Pills - Priority & Sort -->
                 <div style=\"display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;\">
@@ -451,6 +466,13 @@ function renderTasksPage() {
     `;
 }
 
+// Toggle history view
+window.toggleHistoryView = function() {
+    showHistory = !showHistory;
+    currentPage = 1; // Reset to first page
+    renderTasksPage();
+}
+
 function filterAndSortTasks() {
     let tasks = [...window.crmState.tasks];
 
@@ -463,8 +485,8 @@ function filterAndSortTasks() {
         );
     }
 
-    // Status filter
-    if (taskFilters.status !== 'all') {
+    // Status filter (only apply in non-history view)
+    if (!showHistory && taskFilters.status !== 'all') {
         tasks = tasks.filter(task => task.status === taskFilters.status);
     }
 
@@ -597,7 +619,7 @@ window.openAddTaskModal = function() {
             <div class=\"modal-content\">
                 <div class=\"modal-header\">
                     <h3>Add New Task</h3>
-                    <button class=\"close-button\" onclick=\"closeModal('taskModal')\">
+                        <button class="close-button" onclick="closeTaskModal()">
                         <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
                             <line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/>
                             <line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/>
@@ -643,7 +665,13 @@ window.openAddTaskModal = function() {
                         <div class=\"form-row\">
                             <div class=\"form-group\">
                                 <label>Due Date</label>
-                                <input type=\"date\" name=\"dueDate\">
+                                <input type=\"date\" name=\"dueDate\" style=\"position: relative;\">
+                                <style>
+                                    input[type=\"date\"]::-webkit-calendar-picker-indicator {
+                                        filter: invert(1);
+                                        cursor: pointer;
+                                    }
+                                </style>
                             </div>
                             <div class=\"form-group\">
                                 <label>Assignee</label>
@@ -651,7 +679,7 @@ window.openAddTaskModal = function() {
                             </div>
                         </div>
                         <div class=\"form-actions\">
-                            <button type=\"button\" class=\"button secondary\" onclick=\"closeModal('taskModal')\">Cancel</button>
+                            <button type="button" class="button secondary" onclick="closeTaskModal()">Cancel</button>
                             <button type=\"submit\" class=\"button primary\">Add Task</button>
                         </div>
                     </form>
@@ -708,7 +736,7 @@ window.editTask = function(taskId) {
             <div class=\"modal-content\">
                 <div class=\"modal-header\">
                     <h3>Edit Task</h3>
-                    <button class=\"close-button\" onclick=\"closeModal('taskModal')\">
+                        <button class="close-button" onclick="closeTaskModal()">
                         <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
                             <line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/>
                             <line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/>
@@ -754,7 +782,13 @@ window.editTask = function(taskId) {
                         <div class=\"form-row\">
                             <div class=\"form-group\">
                                 <label>Due Date</label>
-                                <input type=\"date\" name=\"dueDate\" value=\"${task.dueDate || ''}\">
+                                <input type=\"date\" name=\"dueDate\" value=\"${task.dueDate || ''}\" style=\"position: relative;\">
+                                <style>
+                                    input[type=\"date\"]::-webkit-calendar-picker-indicator {
+                                        filter: invert(1);
+                                        cursor: pointer;
+                                    }
+                                </style>
                             </div>
                             <div class=\"form-group\">
                                 <label>Assignee</label>
@@ -762,7 +796,7 @@ window.editTask = function(taskId) {
                             </div>
                         </div>
                         <div class=\"form-actions\">
-                            <button type=\"button\" class=\"button secondary\" onclick=\"closeModal('taskModal')\">Cancel</button>
+                            <button type="button" class="button secondary" onclick="closeTaskModal()">Cancel</button>
                             <button type=\"submit\" class=\"button primary\">Update Task</button>
                         </div>
                     </form>
@@ -774,6 +808,23 @@ window.editTask = function(taskId) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
+// Ensure closeModal exists and works for task modals
+if (typeof window.closeModal !== 'function') {
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.remove();
+        }
+    };
+}
+
+// Close task modal (add/edit modals)
+window.closeTaskModal = function() {
+    const modal = document.getElementById('taskModal');
+    if (modal) {
+        modal.remove();
+    }
+}
 // Update Task
 window.updateTask = async function(event, taskId) {
     event.preventDefault();
@@ -1044,4 +1095,3 @@ window.closeTaskDetailModal = function() {
     }
 }
 
-console.log('Tasks.js loaded successfully!');
