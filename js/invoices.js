@@ -781,4 +781,3 @@ window.closeInvoiceDetailModal = function() {
 
 
 
-console.log('Invoices.js loaded successfully!');
