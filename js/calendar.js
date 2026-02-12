@@ -158,7 +158,11 @@ function renderMonthView(container) {
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-        const dateString = date.toISOString().split('T')[0];
+        // Fix: Use local date string instead of ISO to avoid timezone issues
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const dayStr = String(day).padStart(2, '0');
+        const dateString = `${year}-${month}-${dayStr}`;
         const dayEvents = events.filter(e => e.date === dateString);
         const isToday = isSameDay(date, new Date());
         
@@ -372,7 +376,7 @@ window.openAddEventModal = function(preSelectedDate = null) {
             <div class=\"modal-content\" style=\"max-width: 600px;\">
                 <div class=\"modal-header\">
                     <h3>Add Event</h3>
-                    <button class=\"close-button\" onclick=\"closeModal('eventModal')\">
+                    <button class=\"close-button\" onclick=\"document.getElementById('eventModal')?.remove();\">
                         <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
                             <line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/>
                             <line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/>
@@ -435,7 +439,7 @@ window.openAddEventModal = function(preSelectedDate = null) {
                         </div>
 
                         <div class=\"form-actions\">
-                            <button type=\"button\" class=\"button secondary\" onclick=\"closeModal('eventModal')\">Cancel</button>
+                            <button type=\"button\" class=\"button secondary\" onclick=\"document.getElementById('eventModal')?.remove();\">Cancel</button>
                             <button type=\"submit\" class=\"button primary\" data-testid=\"save-event-btn\">Add Event</button>
                         </div>
                     </form>
@@ -588,7 +592,7 @@ window.editEvent = function(eventId) {
             <div class=\"modal-content\" style=\"max-width: 600px;\">
                 <div class=\"modal-header\">
                     <h3>Edit Event</h3>
-                    <button class=\"close-button\" onclick=\"closeModal('eventModal')\">
+                    <button class=\"close-button\" onclick=\"document.getElementById('eventModal')?.remove();\">
                         <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
                             <line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/>
                             <line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/>
@@ -651,7 +655,7 @@ window.editEvent = function(eventId) {
                         </div>
 
                         <div class=\"form-actions\">
-                            <button type=\"button\" class=\"button secondary\" onclick=\"closeModal('eventModal')\">Cancel</button>
+                            <button type=\"button\" class=\"button secondary\" onclick=\"document.getElementById('eventModal')?.remove();\">Cancel</button>
                             <button type=\"submit\" class=\"button primary\" data-testid=\"update-event-btn\">Update Event</button>
                         </div>
                     </form>
@@ -712,4 +716,3 @@ window.deleteEvent = async function(eventId) {
     }
 }
 
-console.log('Calendar.js loaded successfully!');
