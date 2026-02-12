@@ -31,14 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         initialLoadComplete = true;
         if (typeof window.showNotification === 'function') {
-            window.showNotification('Hello GG, just a reminder, I LOVE YOU ', 'info');
+            window.showNotification('Hello GG, I Love You ❤️', 'info');
         }
     }, 1000);
 });
 
 // Setup real-time synchronization across all devices
 function setupRealtimeSync() {
-    console.log('Setting up real-time sync...');
 
     // Real-time listener for clients
     unsubscribeFunctions.clients = onSnapshot(
@@ -64,7 +63,6 @@ function setupRealtimeSync() {
                 });
             }
 
-            console.log('Clients synced:', window.crmState.clients.length);
             generateRecentActivities();
             refreshCurrentPage();
         },
@@ -98,7 +96,6 @@ function setupRealtimeSync() {
                 });
             }
 
-            console.log('Projects synced:', window.crmState.projects.length);
             populateProjectDropdown();
             generateRecentActivities();
             refreshCurrentPage();
@@ -137,7 +134,6 @@ function setupRealtimeSync() {
                 });
             }
 
-            console.log('Tasks synced:', window.crmState.tasks.length);
             generateRecentActivities();
             refreshCurrentPage();
         },
@@ -171,7 +167,6 @@ function setupRealtimeSync() {
                 });
             }
 
-            console.log('Invoices synced:', window.crmState.invoices.length);
             generateRecentActivities();
             refreshCurrentPage();
         },
@@ -205,7 +200,6 @@ function setupRealtimeSync() {
                 });
             }
 
-            console.log('Events synced:', window.crmState.events.length);
             generateRecentActivities();
             refreshCurrentPage();
         },
@@ -215,7 +209,6 @@ function setupRealtimeSync() {
         }
     );
 
-    console.log('Real-time sync active for all collections! 🔄');
 }
 
 // Refresh current page after data sync
@@ -314,7 +307,6 @@ function navigateTo(page) {
 // Load all data from Firebase (fallback - we now use real-time sync)
 async function loadAllData() {
     try {
-        console.log('Loading data from Firebase...');
 
         // Load clients
         const clientsSnapshot = await getDocs(collection(db, 'clients'));
@@ -322,7 +314,6 @@ async function loadAllData() {
             id: doc.id,
             ...doc.data()
         }));
-        console.log('Clients loaded:', window.crmState.clients.length);
 
         // Load projects
         const projectsSnapshot = await getDocs(collection(db, 'projects'));
@@ -330,7 +321,6 @@ async function loadAllData() {
             id: doc.id,
             ...doc.data()
         }));
-        console.log('Projects loaded:', window.crmState.projects.length);
 
         // Load invoices
         const invoicesSnapshot = await getDocs(collection(db, 'invoices'));
@@ -338,7 +328,6 @@ async function loadAllData() {
             id: doc.id,
             ...doc.data()
         }));
-        console.log('Invoices loaded:', window.crmState.invoices.length);
 
         // Load tasks
         const tasksSnapshot = await getDocs(collection(db, 'tasks'));
@@ -346,7 +335,6 @@ async function loadAllData() {
             id: doc.id,
             ...doc.data()
         }));
-        console.log('Tasks loaded:', window.crmState.tasks.length);
 
         // Load events
         const eventsSnapshot = await getDocs(collection(db, 'events'));
@@ -354,7 +342,6 @@ async function loadAllData() {
             id: doc.id,
             ...doc.data()
         }));
-        console.log('Events loaded:', window.crmState.events.length);
 
         // Generate activities from loaded data
         generateRecentActivities();
@@ -533,15 +520,8 @@ function generateRecentActivities() {
     activities.sort((a, b) => b.timestampMs - a.timestampMs);
 
     window.crmState.activities = activities;
-    console.log('✅ Activities generated and sorted (newest first):', activities.length);
 
-    // Log first 5 activities for debugging
-    if (activities.length > 0) {
-        console.log('📋 Most recent 5 activities:');
-        activities.slice(0, 5).forEach((a, idx) => {
-            console.log(`  ${idx + 1}. ${a.title} - ${new Date(a.timestampMs).toLocaleString()}`);
-        });
-    }
+
 }
 
 // Helper function to parse various timestamp formats into milliseconds
@@ -642,14 +622,48 @@ function loadDashboard() {
         })
         .reduce((sum, inv) => sum + (inv.total || inv.amount || 0), 0);
 
-    // Get today's tasks
-    const today = new Date().toISOString().split('T')[0];
-    const todayTasks = tasks.filter(task => task.dueDate === today);
+// Get today's tasks - use LOCAL timezone, not UTC
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const day = String(today.getDate()).padStart(2, '0');
+const todayLocal = `${year}-${month}-${day}`;
+
+const todayTasks = tasks.filter(task => {
+    // Show tasks that are due today
+    if (task.dueDate === todayLocal) {
+        return true;
+    }
+    
+    // Show incomplete tasks from previous days (overdue tasks)
+    if (task.status !== 'done' && task.dueDate && task.dueDate < todayLocal) {
+        return true;
+    }
+    
+    // Show tasks completed today (even if they were due on a different date)
+    if (task.status === 'done' && task.updatedAt) {
+        const completedDate = new Date(task.updatedAt.seconds ? task.updatedAt.seconds * 1000 : task.updatedAt);
+        const completedYear = completedDate.getFullYear();
+        const completedMonth = String(completedDate.getMonth() + 1).padStart(2, '0');
+        const completedDay = String(completedDate.getDate()).padStart(2, '0');
+        const completedDateString = `${completedYear}-${completedMonth}-${completedDay}`;
+        
+        if (completedDateString === todayLocal) {
+            return true;
+        }
+    }
+    
+    return false;
+}).sort((a, b) => {
+    // Incomplete tasks first (status !== 'done'), completed tasks last
+    if (a.status === 'done' && b.status !== 'done') return 1;
+    if (a.status !== 'done' && b.status === 'done') return -1;
+    return 0;
+});
 
     // ✅ DASHBOARD: Show only 10 most recent activities (already sorted newest first)
     const recentActivities = activities.slice(0, 10);
 
-    console.log(`📊 Dashboard loaded: Showing ${recentActivities.length} of ${activities.length} total activities`);
 
     content.innerHTML = `
         <!-- Stats Grid -->
@@ -719,7 +733,7 @@ function loadDashboard() {
         </div>
 
         <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
+<div class="dashboard-grid">
             <!-- Today's Agenda -->
             <div class="card">
                 <div class="card-header">
@@ -734,33 +748,36 @@ function loadDashboard() {
                         View Tasks
                     </a>
                 </div>
-                ${todayTasks.length === 0 ? `
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 11l3 3L22 4"/>
-                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                        </svg>
-                        <h4>No items due today!</h4>
-                        <p>You're all caught up.</p>
-                    </div>
-                ` : `
-                    <div class="task-list-compact">
-                        ${todayTasks.map(task => `
-                            <div class="task-item-compact">
-                                <div class="task-checkbox">
-                                    <input type="checkbox" ${task.status === 'done' ? 'checked' : ''}
-                                           onchange="toggleTaskStatus('${task.id}', this.checked)">
-                                </div>
-                                <div class="task-info-compact">
-                                    <div class="task-title-compact">${task.title}</div>
-                                    <div class="task-meta-compact">
-                                        <span class="badge ${getPriorityClass(task.priority)}">${task.priority}</span>
+                
+<div class="task-list-scrollable">
+                    ${todayTasks.length === 0 ? `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                            <h4>No items due today!</h4>
+                            <p>You're all caught up.</p>
+                        </div>
+                    ` : `
+                        <div class="task-list-compact">
+                            ${todayTasks.map(task => `
+                                <div class="task-item-compact">
+                                    <div class="task-checkbox">
+                                        <input type="checkbox" ${task.status === 'done' ? 'checked' : ''}
+                                               onchange="toggleTaskStatus('${task.id}', this.checked)">
+                                    </div>
+                                    <div class="task-info-compact">
+                                        <div class="task-title-compact" style="${task.status === 'done' ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task.title}</div>
+                                        <div class="task-meta-compact">
+                                            <span class="badge ${getPriorityClass(task.priority)}">${task.priority}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `}
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
             </div>
 
             <!-- Quick Actions -->
@@ -856,7 +873,6 @@ function loadActivityHistoryPage() {
     const allActivities = activities;
     const displayCount = allActivities.length;
 
-    console.log(`📜 Activity History loaded: Showing ALL ${displayCount} activities (newest first)`);
 
     content.innerHTML = `
         <div class="card">
@@ -1039,6 +1055,3 @@ window.loadAllData = loadAllData;
 window.navigateTo = navigateTo;
 window.initiateSearch = initiateSearch;
 window.showNotification = showNotification;
-
-console.log('✅ App.js loaded successfully with real-time sync and fixed sorting! 🔄');
-
