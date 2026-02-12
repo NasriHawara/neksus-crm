@@ -1028,4 +1028,3 @@ window.closeClientDetailModal = function() {
     }
 }
 
-console.log('Clients.js loaded successfully!');
