@@ -7,7 +7,6 @@ let unsubscribeFinances = null;
 
 // Setup real-time sync for finances
 export function setupFinancesSync() {
-    console.log('Setting up finances real-time sync...');
     
     unsubscribeFinances = onSnapshot(
         collection(db, 'finances'),
@@ -32,7 +31,6 @@ export function setupFinancesSync() {
                 });
             }
 
-            console.log('Finances synced:', window.crmState.finances.length);
             
             // Refresh finances page if currently viewing it
             if (window.crmState.currentPage === 'finances') {
@@ -58,11 +56,29 @@ export function loadFinancesPage() {
         .filter(f => f.type === 'income')
         .reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
     
+    // Calculate capital portion from income (20% from income transactions with takeCapital flag)
+    const capitalFromIncome = finances
+        .filter(f => f.type === 'income' && f.takeCapital === true)
+        .reduce((sum, f) => sum + (parseFloat(f.amount) * 0.2 || 0), 0);
+    
     const totalExpenses = finances
         .filter(f => f.type === 'expense')
         .reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
     
-    const netProfit = totalIncome - totalExpenses;
+    // Capital = 20% of income - expenses (expenses are paid from capital)
+    const capital = capitalFromIncome - totalExpenses;
+    
+    // Net Profit = 80% of income with takeCapital (expenses don't affect net profit)
+    const netProfitFromCapitalIncome = finances
+        .filter(f => f.type === 'income' && f.takeCapital === true)
+        .reduce((sum, f) => sum + (parseFloat(f.amount) * 0.8 || 0), 0);
+    
+    // Add any income that doesn't have takeCapital flag (goes 100% to net profit)
+    const netProfitFromOtherIncome = finances
+        .filter(f => f.type === 'income' && f.takeCapital !== true)
+        .reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
+    
+    const netProfit = netProfitFromCapitalIncome + netProfitFromOtherIncome;
 
     // Get recent transactions (last 10)
     const recentTransactions = [...finances]
@@ -147,16 +163,17 @@ export function loadFinancesPage() {
                 </div>
             </div>
 
-            <div class="stat-card secondary">
+            <div class="stat-card info">
                 <div class="stat-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="9" y1="3" x2="9" y2="21"/>
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
                     </svg>
                 </div>
                 <div class="stat-details">
-                    <div class="stat-label">Total Transactions</div>
-                    <div class="stat-value">${finances.length}</div>
+                    <div class="stat-label">Capital (20%)</div>
+                    <div class="stat-value">$${capital.toFixed(2)}</div>
                 </div>
             </div>
         </div>
@@ -235,7 +252,7 @@ export function loadFinancesPage() {
             `}
         </div>
 
-        <!-- Add/Edit Finance Modal -->
+      <!-- Add/Edit Finance Modal -->
         <div class="modal" id="addFinanceModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -251,7 +268,7 @@ export function loadFinancesPage() {
                     <form id="financeForm" onsubmit="window.handleFinanceSubmit(event)">
                         <div class="form-group">
                             <label>Type *</label>
-                            <select id="financeType" required>
+                            <select id="financeType" required style="background: var(--bg-darker); color: var(--text-primary);">
                                 <option value="income">Income</option>
                                 <option value="expense">Expense</option>
                             </select>
@@ -259,25 +276,8 @@ export function loadFinancesPage() {
 
                         <div class="form-group">
                             <label>Category *</label>
-                            <select id="financeCategory" required>
+                            <select id="financeCategory" required style="background: var(--bg-darker); color: var(--text-primary);">
                                 <option value="">Select Category</option>
-                                <optgroup label="Income Categories">
-                                    <option value="Sales">Sales</option>
-                                    <option value="Services">Services</option>
-                                    <option value="Consulting">Consulting</option>
-                                    <option value="Investment">Investment</option>
-                                    <option value="Other Income">Other Income</option>
-                                </optgroup>
-                                <optgroup label="Expense Categories">
-                                    <option value="Office Supplies">Office Supplies</option>
-                                    <option value="Software">Software</option>
-                                    <option value="Marketing">Marketing</option>
-                                    <option value="Utilities">Utilities</option>
-                                    <option value="Rent">Rent</option>
-                                    <option value="Salaries">Salaries</option>
-                                    <option value="Travel">Travel</option>
-                                    <option value="Other Expense">Other Expense</option>
-                                </optgroup>
                             </select>
                         </div>
 
@@ -296,6 +296,16 @@ export function loadFinancesPage() {
                             <input type="date" id="financeDate" required>
                         </div>
 
+                        <div class="form-group" id="takeCapitalGroup" style="display: none;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="financeTakeCapital" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Take Capital (20% of income)</span>
+                            </label>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; margin-left: 28px;">
+                                When checked, 20% of this income will be added to Capital
+                            </p>
+                        </div>
+
                         <div class="form-group">
                             <label>Notes</label>
                             <textarea id="financeNotes" rows="3" placeholder="Additional notes (optional)"></textarea>
@@ -304,7 +314,7 @@ export function loadFinancesPage() {
                         <input type="hidden" id="financeId">
 
                         <div class="modal-actions">
-                            <button type="button" class="secondary-button" onclick="window.closeModal('addFinanceModal')">Cancel</button>
+                            <button type="button" class="button secondary" onclick="window.closeModal('addFinanceModal')">Cancel</button>
                             <button type="submit" class="primary-button">Save Transaction</button>
                         </div>
                     </form>
@@ -317,6 +327,43 @@ export function loadFinancesPage() {
     const dateInput = document.getElementById('financeDate');
     if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Function to update categories based on type
+    function updateCategories() {
+        const type = document.getElementById('financeType').value;
+        const categorySelect = document.getElementById('financeCategory');
+        
+        const incomeCategories = ['Development', 'Marketing', 'Design', 'Other Income'];
+        const expenseCategories = ['Software', 'Marketing', 'Utilities', 'Salaries', 'Other Expense'];
+        
+        const categories = type === 'income' ? incomeCategories : expenseCategories;
+        
+        categorySelect.innerHTML = '<option value="">Select Category</option>';
+        categories.forEach(cat => {
+            categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+    }
+
+    // Add event listener to show/hide Take Capital checkbox and update categories based on type
+    const typeSelect = document.getElementById('financeType');
+    if (typeSelect) {
+        typeSelect.addEventListener('change', function() {
+            const takeCapitalGroup = document.getElementById('takeCapitalGroup');
+            if (this.value === 'income') {
+                takeCapitalGroup.style.display = 'block';
+            } else {
+                takeCapitalGroup.style.display = 'none';
+                document.getElementById('financeTakeCapital').checked = false;
+            }
+            
+            // Update categories when type changes
+            updateCategories();
+        });
+        
+        // Initialize categories and trigger change event on load
+        updateCategories();
+        typeSelect.dispatchEvent(new Event('change'));
     }
 }
 
@@ -420,6 +467,15 @@ window.editFinance = async function(financeId) {
     document.getElementById('financeAmount').value = finance.amount;
     document.getElementById('financeDate').value = finance.date;
     document.getElementById('financeNotes').value = finance.notes || '';
+    document.getElementById('financeTakeCapital').checked = finance.takeCapital || false;
+
+    // Show/hide Take Capital based on type
+    const takeCapitalGroup = document.getElementById('takeCapitalGroup');
+    if (finance.type === 'income') {
+        takeCapitalGroup.style.display = 'block';
+    } else {
+        takeCapitalGroup.style.display = 'none';
+    }
 
     window.openModal('addFinanceModal');
 }
@@ -442,13 +498,17 @@ window.handleFinanceSubmit = async function(event) {
     event.preventDefault();
 
     const financeId = document.getElementById('financeId').value;
+    const type = document.getElementById('financeType').value;
+    const takeCapital = type === 'income' ? document.getElementById('financeTakeCapital').checked : false;
+    
     const financeData = {
-        type: document.getElementById('financeType').value,
+        type: type,
         category: document.getElementById('financeCategory').value,
         description: document.getElementById('financeDescription').value,
         amount: parseFloat(document.getElementById('financeAmount').value),
         date: document.getElementById('financeDate').value,
         notes: document.getElementById('financeNotes').value || '',
+        takeCapital: takeCapital,
         updatedAt: new Date().toISOString()
     };
 
@@ -480,4 +540,3 @@ function formatDate(dateString) {
         day: 'numeric' 
     });
 }
-
