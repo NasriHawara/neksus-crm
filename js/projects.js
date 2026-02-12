@@ -2061,4 +2061,3 @@ function formatNoteDate(dateString) {
 window.renderProjectAttachments = renderProjectAttachments;
 window.renderProjectNotes = renderProjectNotes;
 
-console.log('Projects.js with Attachments and Notes loaded successfully!');
