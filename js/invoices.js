@@ -331,9 +331,7 @@ window.saveInvoice = async function(event) {
             });
             
             showNotification('Invoice created as paid and income transaction added!', 'success');
-        } else {
-            showNotification('Invoice created successfully!', 'success');
-        }
+        } 
         
         window.closeModal('invoiceModal');
         document.getElementById('invoiceModal').remove();
@@ -529,7 +527,6 @@ window.updateInvoice = async function(event, invoiceId) {
         
         // Only show generic success if we didn't already show the "marked as paid" message
         if (newStatus !== 'paid' || oldStatus === 'paid') {
-            showNotification('Invoice updated successfully!', 'success');
         }
     } catch (error) {
         console.error('Error updating invoice:', error);
@@ -548,7 +545,6 @@ window.deleteInvoice = async function(invoiceId) {
         const invoiceRef = doc(db, 'invoices', invoiceId);
         await deleteDoc(invoiceRef);
         await window.loadAllData();
-        showNotification('Invoice deleted successfully!', 'success');
     } catch (error) {
         console.error('Error deleting invoice:', error);
         showNotification('Error deleting invoice. Please try again.', 'error');
@@ -776,8 +772,3 @@ window.closeInvoiceDetailModal = function() {
         modal.remove();
     }
 }
-
-
-
-
-
