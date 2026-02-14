@@ -476,7 +476,6 @@ window.saveEvent = async function(e) {
         document.getElementById('eventModal')?.remove();
         await window.loadAllData();
         window.loadCalendarPage();
-        showNotification('Event added successfully!', 'success');
     } catch (error) {
         console.error('Error adding event:', error);
         showNotification('Error adding event. Please try again.', 'error');
@@ -693,7 +692,6 @@ window.updateEvent = async function(e, eventId) {
         document.getElementById('eventModal')?.remove();
         await window.loadAllData();
         window.loadCalendarPage();
-        showNotification('Event updated successfully!', 'success');
     } catch (error) {
         console.error('Error updating event:', error);
         showNotification('Error updating event. Please try again.', 'error');
@@ -709,7 +707,6 @@ window.deleteEvent = async function(eventId) {
         await deleteDoc(eventRef);
         await window.loadAllData();
         window.loadCalendarPage();
-        showNotification('Event deleted successfully!', 'success');
     } catch (error) {
         console.error('Error deleting event:', error);
         showNotification('Error deleting event. Please try again.', 'error');
