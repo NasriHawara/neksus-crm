@@ -602,7 +602,6 @@ window.saveClient = async function(event) {
         window.closeModal('clientModal');
         document.getElementById('clientModal').remove();
         await window.loadAllData();
-        showNotification('Client added successfully!', 'success');
     } catch (error) {
         console.error('Error adding client:', error);
         showNotification('Error adding client. Please try again.', 'error');
@@ -697,7 +696,6 @@ window.updateClient = async function(event, clientId) {
         window.closeModal('clientModal');
         document.getElementById('clientModal').remove();
         await window.loadAllData();
-        showNotification('Client updated successfully!', 'success');
     } catch (error) {
         console.error('Error updating client:', error);
         showNotification('Error updating client. Please try again.', 'error');
@@ -712,7 +710,6 @@ window.deleteClient = async function(clientId) {
         const clientRef = doc(db, 'clients', clientId);
         await deleteDoc(clientRef);
         await window.loadAllData();
-        showNotification('Client deleted successfully!', 'success');
     } catch (error) {
         console.error('Error deleting client:', error);
         showNotification('Error deleting client. Please try again.', 'error');
