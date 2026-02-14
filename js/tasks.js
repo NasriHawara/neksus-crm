@@ -714,7 +714,6 @@ window.saveTask = async function(event) {
         window.closeModal('taskModal');
         document.getElementById('taskModal').remove();
         await window.loadAllData();
-        showNotification('Task created successfully!', 'success');
     } catch (error) {
         console.error('Error creating task:', error);
         showNotification('Error creating task. Please try again.', 'error');
@@ -849,7 +848,6 @@ window.updateTask = async function(event, taskId) {
         window.closeModal('taskModal');
         document.getElementById('taskModal').remove();
         await window.loadAllData();
-        showNotification('Task updated successfully!', 'success');
     } catch (error) {
         console.error('Error updating task:', error);
         showNotification('Error updating task. Please try again.', 'error');
@@ -864,7 +862,6 @@ window.deleteTask = async function(taskId) {
         const taskRef = doc(db, 'tasks', taskId);
         await deleteDoc(taskRef);
         await window.loadAllData();
-        showNotification('Task deleted successfully!', 'success');
     } catch (error) {
         console.error('Error deleting task:', error);
         showNotification('Error deleting task. Please try again.', 'error');
