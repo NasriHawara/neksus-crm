@@ -60,14 +60,17 @@ export function loadFinancesPage() {
     const capitalFromIncome = finances
         .filter(f => f.type === 'income' && f.takeCapital === true)
         .reduce((sum, f) => sum + (parseFloat(f.amount) * 0.2 || 0), 0);
+
+        const capitalInjections = finances
+    .filter(f => f.type === 'capital_injection')
+    .reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
     
     const totalExpenses = finances
         .filter(f => f.type === 'expense')
         .reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
     
     // Capital = 20% of income - expenses (expenses are paid from capital)
-    const capital = capitalFromIncome - totalExpenses;
-    
+const capital = capitalFromIncome + capitalInjections - totalExpenses;    
     // Net Profit = 80% of income with takeCapital (expenses don't affect net profit)
     const netProfitFromCapitalIncome = finances
         .filter(f => f.type === 'income' && f.takeCapital === true)
@@ -113,13 +116,23 @@ export function loadFinancesPage() {
                 </select>
                 <input type="month" id="financeMonthFilter" onchange="window.filterFinances()">
             </div>
-            <button class="primary-button" onclick="window.openAddFinanceModal()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                Add Transaction
-            </button>
+<div style="display: flex; gap: 10px;">
+    <button class="button secondary" onclick="window.openAddCapitalModal()" style="display: flex; align-items: center; gap: 6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        Add Capital
+    </button>
+    <button class="primary-button" onclick="window.openAddFinanceModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Transaction
+    </button>
+</div>
         </div>
 
         <!-- Summary Cards -->
@@ -172,7 +185,7 @@ export function loadFinancesPage() {
                     </svg>
                 </div>
                 <div class="stat-details">
-                    <div class="stat-label">Capital (20%)</div>
+<div class="stat-label">Capital </div>
                     <div class="stat-value">$${capital.toFixed(2)}</div>
                 </div>
             </div>
@@ -271,6 +284,7 @@ export function loadFinancesPage() {
                             <select id="financeType" required style="background: var(--bg-darker); color: var(--text-primary);">
                                 <option value="income">Income</option>
                                 <option value="expense">Expense</option>
+                                <option value="capital_injection">Capital Injections</option>
                             </select>
                         </div>
 
@@ -321,6 +335,45 @@ export function loadFinancesPage() {
                 </div>
             </div>
         </div>
+
+
+        <!-- Add Capital Modal -->
+<div class="modal" id="addCapitalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Capital</h3>
+            <button class="close-button" onclick="window.closeModal('addCapitalModal')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                Manually inject capital from the owner's personal funds. This amount will be added directly to the Capital balance.
+            </p>
+            <form id="capitalForm" onsubmit="window.handleCapitalSubmit(event)">
+                <div class="form-group">
+                    <label>Amount ($) *</label>
+                    <input type="number" id="capitalAmount" step="0.01" min="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Date *</label>
+                    <input type="date" id="capitalDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="capitalNotes" rows="3" placeholder="e.g. Owner personal investment, emergency fund..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="button secondary" onclick="window.closeModal('addCapitalModal')">Cancel</button>
+                    <button type="submit" class="primary-button">Add to Capital</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
     `;
 
     // Set default date to today
@@ -529,6 +582,39 @@ window.handleFinanceSubmit = async function(event) {
         window.showNotification('Failed to save transaction', 'error');
     }
 }
+
+
+// Open add capital modal
+window.openAddCapitalModal = function() {
+    document.getElementById('capitalForm').reset();
+    document.getElementById('capitalDate').value = new Date().toISOString().split('T')[0];
+    window.openModal('addCapitalModal');
+}
+
+// Handle capital form submission
+window.handleCapitalSubmit = async function(event) {
+    event.preventDefault();
+
+    const capitalData = {
+        type: 'capital_injection',
+        amount: parseFloat(document.getElementById('capitalAmount').value),
+        date: document.getElementById('capitalDate').value,
+        notes: document.getElementById('capitalNotes').value || '',
+        description: 'Manual capital injection',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+
+    try {
+        await addDoc(collection(db, 'finances'), capitalData);
+        window.closeModal('addCapitalModal');
+        window.showNotification('Capital added successfully', 'success');
+    } catch (error) {
+        console.error('Error adding capital:', error);
+        window.showNotification('Failed to add capital', 'error');
+    }
+}
+
 
 // Helper function to format date
 function formatDate(dateString) {
