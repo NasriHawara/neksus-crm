@@ -2,7 +2,7 @@ const CACHE_NAME = 'crm-v2'; // bumped version to force fresh install
 const urlsToCache = [
   '/',
   '/index.html',
-  '/css/styles.css',
+  '/styles.css',
   '/js/app.js',
   '/js/calendar.js',
   '/js/clients.js',
@@ -46,3 +46,4 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
