@@ -2817,3 +2817,46 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 
 
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 12px 0;
+}
+
+.pagination button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    background: #1a1a1a;
+    color: #aaa;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #2a1f2e;
+    border-color: #983e97;
+    color: #fff;
+}
+
+.pagination button.active {
+    background: #983e97;
+    border-color: #983e97;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(152, 62, 151, 0.4);
+}
+
+.pagination button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
