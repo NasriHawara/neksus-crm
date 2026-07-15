@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Dashboard | NeksusTeam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #983e97;
+      --primary-light: #b366b1;
+      --primary-dark: #7a2f79;
+      --grad: linear-gradient(135deg, #983e97 0%, #b366b1 100%);
+      --black: #0a0a0b;
+      --dark: #111113;
+      --surface: #1a1a1c;
+      --surface2: #222225;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(152,62,151,0.4);
+      --text: #f0f0f0;
+      --text-dim: rgba(255,255,255,0.55);
+      --text-muted: rgba(255,255,255,0.3);
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --font: 'Inter', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --sidebar-w: 280px;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark); }
+    ::-webkit-scrollbar-thumb { background: rgba(152,62,151,0.4); border-radius: 6px; }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--dark);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 200;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo a {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+    .sidebar-logo p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-top: 3px;
+    }
+    .sidebar-nav {
+      flex: 1;
+      padding: 1.5rem 0;
+      overflow-y: auto;
+    }
+    .sidebar-nav-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 1.5rem 0.5rem;
+      font-family: var(--mono);
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 1.5rem;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+      background: none;
+      border-top: none;
+      border-right: none;
+      border-bottom: none;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font);
+      text-decoration: none;
+    }
+    .sidebar-link i { width: 18px; text-align: center; font-size: 0.85rem; }
+    .sidebar-link:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .sidebar-link.active {
+      color: #fff;
+      border-left-color: var(--primary);
+      background: rgba(152,62,151,0.1);
+    }
+    .sidebar-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .sidebar-footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    /* ══ MAIN ══ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 60px;
+      background: var(--dark);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .content {
+      padding: 2rem;
+      flex: 1;
+    }
+
+    /* ══ BUTTONS ══ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      font-family: var(--font);
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--grad); color: #fff; }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.25); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-success { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.25); }
+    .btn-success:hover { background: rgba(16,185,129,0.25); }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+    .btn-icon { padding: 7px; min-width: 34px; justify-content: center; }
+
+    /* ══ VIEWS ══ */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ══ STATS ROW ══ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--grad);
+    }
+    .stat-card .label { font-size: 0.72rem; color: var(--text-muted); font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; margin-top: 0.3rem; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* ══ TABLE ══ */
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .table-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 7px 14px;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: var(--font);
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .blogs-table {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .table-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px 110px;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      gap: 1rem;
+      transition: background 0.15s;
+    }
+    .table-head {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .table-body .table-row {
+      border-bottom: 1px solid var(--border);
+    }
+    .table-body .table-row:last-child { border-bottom: none; }
+    .table-body .table-row:hover { background: rgba(255,255,255,0.02); }
+
+    .row-title { font-weight: 600; font-size: 0.9rem; }
+    .row-title small { display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
+    .cat-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .row-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 0;
+      color: var(--text-muted);
+    }
+    .empty-state i { font-size: 2.5rem; color: rgba(152,62,151,0.3); margin-bottom: 1rem; display: block; }
+    .empty-state p { margin-bottom: 1.5rem; }
+
+    /* ══ EDITOR ══ */
+    .editor-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .editor-header h2 { font-size: 1.2rem; font-weight: 700; flex: 1; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 700px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    input[type="text"], select, textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: var(--font);
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    select option { background: var(--surface2); }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+    /* Image upload */
+    .image-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .image-upload-area:hover, .image-upload-area.drag-over {
+      border-color: var(--primary);
+      background: rgba(152,62,151,0.05);
+    }
+    .image-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-icon { font-size: 1.75rem; color: rgba(152,62,151,0.5); margin-bottom: 0.75rem; }
+    .upload-text { font-size: 0.85rem; color: var(--text-dim); }
+    .upload-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .image-preview {
+      display: none;
+      margin-top: 1rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      height: 200px;
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+    }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+    .sec-img-preview {
+      margin-top: 0.75rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      height: 180px;
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+    }
+    .sec-img-preview img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+    .image-preview-remove {
+      position: absolute;
+      top: 0.5rem; right: 0.5rem;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .image-preview-remove:hover { background: var(--danger); }
+
+    /* Sections */
+    .sections-area {
+      margin-top: 2rem;
+    }
+    .sections-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .sections-header h3 { font-size: 1rem; font-weight: 700; }
+
+    .section-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .section-block-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.25rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-drag-handle {
+      color: var(--text-muted);
+      cursor: grab;
+      padding: 0 4px;
+      font-size: 0.8rem;
+    }
+    .section-number {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--primary-light);
+      background: rgba(152,62,151,0.15);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .section-title-preview {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+    .section-collapse-icon { color: var(--text-muted); font-size: 0.75rem; transition: transform 0.2s; }
+    .section-block.collapsed .section-collapse-icon { transform: rotate(-90deg); }
+    .section-block-body { padding: 1.25rem; display: block; }
+    .section-block.collapsed .section-block-body { display: none; }
+
+    /* Content blocks */
+    .content-blocks { display: flex; flex-direction: column; gap: 0.75rem; }
+    .content-block {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .content-block-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .content-block-type {
+      font-size: 0.65rem;
+      font-family: var(--mono);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .content-block-body { padding: 0.75rem; }
+    .content-block-body textarea { min-height: 70px; font-size: 0.875rem; }
+    .bullets-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bullet-row { display: flex; gap: 0.5rem; align-items: center; }
+    .bullet-row input { flex: 1; font-size: 0.875rem; }
+    .bullet-delete { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 4px; font-size: 0.8rem; transition: color 0.15s; }
+    .bullet-delete:hover { color: var(--danger); }
+    .add-bullet-btn {
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: all 0.15s;
+      font-family: var(--font);
+      width: 100%;
+    }
+    .add-bullet-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .add-content-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .add-content-btn {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font);
+    }
+    .add-content-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ══ TOAST ══ */
+    .toast-wrap {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1.25rem;
+      font-size: 0.875rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      animation: slideInRight 0.25s ease;
+    }
+    .toast.success { border-color: rgba(16,185,129,0.3); }
+    .toast.success i { color: var(--success); }
+    .toast.error { border-color: rgba(239,68,68,0.3); }
+    .toast.error i { color: var(--danger); }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ══ CONFIRM MODAL ══ */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+    }
+    .confirm-box i { font-size: 2rem; color: var(--danger); margin-bottom: 1rem; display: block; }
+    .confirm-box h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .confirm-box p { font-size: 0.875rem; color: var(--text-dim); margin-bottom: 1.5rem; }
+    .confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
+
+    /* ══ MOBILE ══ */
+    .sidebar-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 4px;
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .sidebar-toggle { display: block; }
+      .table-row { grid-template-columns: 1fr 80px; }
+      .table-row .table-col-cat, .table-row .table-col-date { display: none; }
+    }
+
+    /* section header input */
+    .section-header-input {
+      font-size: 1rem;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 6px 0;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .section-header-input:focus {
+      outline: none;
+      border-bottom-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html">NeksusTeam</a>
+      <p>Blog Dashboard</p>
+    </div>
+    <nav class="sidebar-nav">
+      <p class="sidebar-nav-label">Management</p>
+      <button class="sidebar-link active" id="navList" onclick="showView('list')">
+        <i class="fas fa-list"></i> All Posts
+      </button>
+      <button class="sidebar-link" id="navNew" onclick="showView('editor', null)">
+        <i class="fas fa-plus"></i> New Post
+      </button>
+      <p class="sidebar-nav-label" style="margin-top:1rem">Site</p>
+      <a class="sidebar-link" href="blogs.html" target="_blank">
+        <i class="fas fa-external-link-alt"></i> View Blog
+      </a>
+<a class="sidebar-link" href="https://neksusteam.com" target="_blank">
+    <i class="fas fa-home"></i> Main Website
+</a>
+    </nav>
+    <div class="sidebar-footer">
+      Blog data stored locally in your browser.
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        <span class="topbar-title" id="topbarTitle">All Posts</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="showView('editor', null)">
+          <i class="fas fa-plus"></i> New Post
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- ── LIST VIEW ── -->
+      <div class="view active" id="viewList">
+        <div class="stats-row" id="statsRow"></div>
+        <div class="table-header">
+          <h2>Blog Posts</h2>
+          <input class="search-input" type="text" placeholder="Search posts..." id="searchInput" oninput="renderList()">
+        </div>
+        <div class="blogs-table">
+          <div class="table-row table-head">
+            <div>Title / Summary</div>
+            <div class="table-col-cat">Category</div>
+            <div class="table-col-date">Date</div>
+            <div style="text-align:right">Actions</div>
+          </div>
+          <div class="table-body" id="tableBody"></div>
+        </div>
+      </div>
+
+      <!-- ── EDITOR VIEW ── -->
+      <div class="view" id="viewEditor">
+        <div class="editor-header">
+          <button class="btn btn-ghost btn-sm" onclick="showView('list')">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <h2 id="editorTitle">New Post</h2>
+          <div style="margin-left:auto;display:flex;gap:0.75rem;">
+            <a class="btn btn-ghost btn-sm" id="previewLink" href="#" target="_blank">
+              <i class="fas fa-eye"></i> Preview
+            </a>
+            <button class="btn btn-primary" onclick="savePost()">
+              <i class="fas fa-save"></i> Save Post
+            </button>
+          </div>
+        </div>
+
+        <!-- Basic Fields -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="fCategory">
+              <option value="">Select category</option>
+              <option value="Development">Development</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Design">Design</option>
+              <option value="News">News</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Blog Title</label>
+            <input type="text" id="fTitle" placeholder="Enter blog title...">
+          </div>
+          <div class="form-group full">
+            <label>Summary / Description</label>
+            <textarea id="fSummary" placeholder="A short 1–3 sentence summary shown on the blog listing page..."></textarea>
+          </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="form-group" style="margin-bottom:2rem">
+          <label>Cover Image</label>
+          <div class="image-upload-area" id="imageUploadArea">
+            <input type="file" id="fImage" accept="image/*" onchange="handleImageUpload(this)">
+            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <p class="upload-text">Click or drag & drop an image</p>
+            <p class="upload-sub">JPG, PNG, WebP — recommended 1200×630px</p>
+          </div>
+          <div class="image-preview" id="imagePreview">
+            <img id="imagePreviewImg" src="" alt="Preview">
+            <button class="image-preview-remove" onclick="removeImage()">✕ Remove</button>
+          </div>
+        </div>
+
+        <!-- Sections -->
+        <div class="sections-area">
+          <div class="sections-header">
+            <h3>Content Sections</h3>
+            <button class="btn btn-ghost btn-sm" onclick="addSection()">
+              <i class="fas fa-plus"></i> Add Section
+            </button>
+          </div>
+          <div id="sectionsContainer"></div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:0.5rem;justify-content:center;" onclick="addSection()">
+            <i class="fas fa-plus"></i> Add Another Section
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <i class="fas fa-trash-alt"></i>
+      <h3>Delete Post?</h3>
+      <p>This action cannot be undone. The post will be permanently removed.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script type="module">
+    import { initializeApp }        from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, doc, getDocs, getDoc, setDoc, deleteDoc, orderBy, query }
+                                    from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject }
+                                    from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+
+    /* ══ FIREBASE INIT ══ */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBP2PEZw4GzRCW_M5tkpzAxYlLElD3OZcs",
+      authDomain: "neksus-bf562.firebaseapp.com",
+      projectId: "neksus-bf562",
+      storageBucket: "neksus-bf562.firebasestorage.app",
+      messagingSenderId: "709637132392",
+      appId: "1:709637132392:web:da1052074262b4f308abdd",
+      measurementId: "G-ZKNVD17YS4"
+    };
+    const app     = initializeApp(firebaseConfig);
+    const db      = getFirestore(app);
+    const storage = getStorage(app);
+    const COL     = 'blogs';
+
+    /* ══ FIRESTORE HELPERS ══ */
+    async function dbGetAll() {
+      const q    = query(collection(db, COL), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => d.data());
+    }
+    async function dbGetById(id) {
+      const snap = await getDoc(doc(db, COL, id));
+      return snap.exists() ? snap.data() : null;
+    }
+    async function dbSave(blog) {
+      blog.updatedAt = new Date().toISOString();
+      await setDoc(doc(db, COL, blog.id), blog);
+      return blog;
+    }
+    async function dbRemove(id) {
+      await deleteDoc(doc(db, COL, id));
+    }
+
+    /* ══ STORAGE UPLOAD ══ */
+    function uploadImage(file, path, onProgress) {
+      return new Promise((resolve, reject) => {
+        const storageRef = ref(storage, path);
+        const task = uploadBytesResumable(storageRef, file);
+        task.on('state_changed',
+          snap => { if (onProgress) onProgress(Math.round(snap.bytesTransferred / snap.totalBytes * 100)); },
+          reject,
+          async () => { resolve(await getDownloadURL(task.snapshot.ref)); }
+        );
+      });
+    }
+
+    /* ══ SHARED UTILS ══ */
+    function generateId()  { return 'blog_' + Date.now() + '_' + Math.random().toString(36).substr(2,9); }
+    function formatDate(iso) { return new Date(iso).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); }
+    function getCategoryColor(cat) {
+      return {'Development':'#3b82f6','Marketing':'#10b981','Design':'#f59e0b','News':'#983e97'}[cat] || '#983e97';
+    }
+    function createNew() {
+      return { id: generateId(), category:'', title:'', image:'', summary:'', sections:[], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    }
+
+    /* ══ SEED ══ */
+    async function seedIfEmpty() {
+      const snap = await getDocs(collection(db, COL));
+      if (!snap.empty) return;
+      const demos = [
+        { id:'demo_1', category:'Development', title:'How to Build a High-Performance Website in 2025', image:'', summary:'Modern web performance is more than page speed. We break down the pillars of a truly fast, scalable website.',
+          sections:[{id:'s1',header:'Why Performance Still Matters',content:[{type:'paragraph',text:'Users expect sub-second interactions. Every 100ms of latency costs conversion rates.'},{type:'bullets',items:['Core Web Vitals directly affect Google ranking','Mobile users on slow connections are a major audience','Perceived speed drives user trust']}]},{id:'s2',header:'Key Strategies',content:[{type:'paragraph',text:'From server-side rendering to intelligent caching, the modern stack offers many tools.'},{type:'bullets',items:['Use edge functions for dynamic content','Implement aggressive image optimisation','Adopt component-level code splitting']}]}],
+          createdAt:new Date(Date.now()-7*86400000).toISOString(), updatedAt:new Date(Date.now()-7*86400000).toISOString() },
+        { id:'demo_2', category:'Marketing', title:'The Anatomy of a Scroll-Stopping Social Ad', image:'', summary:'We dissect what makes creatives stop thumbs and drive clicks in a saturated feed.',
+          sections:[{id:'s1',header:'Hook in the First Frame',content:[{type:'paragraph',text:'You have approximately 1.7 seconds to earn attention. The first frame must communicate value instantly.'}]}],
+          createdAt:new Date(Date.now()-3*86400000).toISOString(), updatedAt:new Date(Date.now()-3*86400000).toISOString() },
+        { id:'demo_3', category:'Design', title:"Dark Mode Done Right: A Designer's Checklist", image:'', summary:'A practical checklist to ensure your dark UI is beautiful, accessible, and consistent.',
+          sections:[{id:'s1',header:'Colour Is Everything',content:[{type:'paragraph',text:'Do not simply invert your light palette. Dark mode needs its own colour system.'},{type:'bullets',items:['Use slightly desaturated colours on dark backgrounds','Ensure text contrast ratio is at least 4.5:1','Avoid pure black — use very dark grey']}]}],
+          createdAt:new Date(Date.now()-86400000).toISOString(), updatedAt:new Date(Date.now()-86400000).toISOString() },
+        { id:'demo_4', category:'News', title:'NeksusTeam Expands Service Offering for 2025', image:'', summary:'AI-powered marketing automation and expanded mobile development are now available.',
+          sections:[{id:'s1',header:"What's New",content:[{type:'paragraph',text:'NeksusTeam is proud to launch two new service lines.'},{type:'bullets',items:['AI-powered marketing automation','Cross-platform mobile development (React Native)','Dedicated account manager for all plans']}]}],
+          createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() }
+      ];
+      await Promise.all(demos.map(d => setDoc(doc(db, COL, d.id), d)));
+    }
+
+    /* ══ STATE ══ */
+    let currentBlog = null;
+    let deleteTarget = null;
+
+    /* ══ VIEWS ══ */
+    function showView(name, blogId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+
+      if (name === 'list') {
+        document.getElementById('viewList').classList.add('active');
+        document.getElementById('navList').classList.add('active');
+        document.getElementById('topbarTitle').textContent = 'All Posts';
+        renderList();
+        renderStats();
+      } else if (name === 'editor') {
+        document.getElementById('viewEditor').classList.add('active');
+        document.getElementById('navNew').classList.add('active');
+        openEditor(blogId);
+      }
+    }
+
+    /* ══ LIST ══ */
+    async function renderStats() {
+      const all  = await dbGetAll();
+      const cats = ['Development','Marketing','Design','News'];
+      const html = [
+        `<div class="stat-card"><div class="label">Total Posts</div><div class="value">${all.length}</div></div>`,
+        ...cats.map(c => `<div class="stat-card"><div class="label">${c}</div><div class="value">${all.filter(b=>b.category===c).length}</div></div>`)
+      ].join('');
+      document.getElementById('statsRow').innerHTML = html;
+    }
+
+    async function renderList() {
+      const body = document.getElementById('tableBody');
+      body.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+      const q   = (document.getElementById('searchInput').value || '').toLowerCase();
+      let blogs = await dbGetAll();
+      if (q) blogs = blogs.filter(b => b.title.toLowerCase().includes(q) || b.category.toLowerCase().includes(q) || (b.summary||'').toLowerCase().includes(q));
+
+      if (blogs.length === 0) {
+        body.innerHTML = `<div class="empty-state"><i class="far fa-newspaper"></i><p>No posts yet.</p><button class="btn btn-primary" onclick="showView('editor',null)"><i class="fas fa-plus"></i> Create First Post</button></div>`;
+        return;
+      }
+
+      body.innerHTML = blogs.map(b => {
+        const c = getCategoryColor(b.category);
+        const badge = `<span class="cat-badge" style="background:${c}22;color:${c};border:1px solid ${c}44">${b.category}</span>`;
+        return `
+          <div class="table-row">
+            <div class="row-title">
+              ${b.title || '<em style="opacity:.4">Untitled</em>'}
+              <small>${b.summary || ''}</small>
+            </div>
+            <div class="table-col-cat">${badge}</div>
+            <div class="table-col-date" style="font-size:0.78rem;color:var(--text-muted)">${formatDate(b.createdAt)}</div>
+            <div class="row-actions">
+              <a href="blog-post.html?id=${b.id}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="View"><i class="fas fa-eye"></i></a>
+              <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="showView('editor','${b.id}')"><i class="fas fa-pencil-alt"></i></button>
+              <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="openConfirm('${b.id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ══ EDITOR ══ */
+    async function openEditor(blogId) {
+      currentBlog = blogId ? (await dbGetById(blogId)) : createNew();
+      if (!currentBlog) { showView('list'); return; }
+
+      document.getElementById('editorTitle').textContent = blogId ? 'Edit Post' : 'New Post';
+      document.getElementById('topbarTitle').textContent = blogId ? 'Edit Post' : 'New Post';
+
+      // Fill fields
+      document.getElementById('fCategory').value = currentBlog.category || '';
+      document.getElementById('fTitle').value = currentBlog.title || '';
+      document.getElementById('fSummary').value = currentBlog.summary || '';
+
+      // Image
+      const preview = document.getElementById('imagePreview');
+      const previewImg = document.getElementById('imagePreviewImg');
+      if (currentBlog.image && currentBlog.image.length > 10) {
+        previewImg.src = currentBlog.image;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+        previewImg.src = '';
+      }
+
+      // Preview link
+      document.getElementById('previewLink').href = currentBlog.id ? `blog-post.html?id=${currentBlog.id}` : '#';
+
+      // Sections
+      renderSections();
+    }
+
+    function collectFromDOM() {
+      currentBlog.category = document.getElementById('fCategory').value;
+      currentBlog.title    = document.getElementById('fTitle').value;
+      currentBlog.summary  = document.getElementById('fSummary').value;
+      currentBlog.sections = collectSections();
+      currentBlog.updatedAt = new Date().toISOString();
+    }
+
+    async function savePost() {
+      collectFromDOM();
+      if (!currentBlog.category)    { toast('Please select a category.', 'error'); return; }
+      if (!currentBlog.title.trim()) { toast('Please enter a title.', 'error'); return; }
+
+      const btn = document.querySelector('.btn-primary[onclick="savePost()"]');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; }
+
+      try {
+        // Upload cover image if a new file was selected
+        if (pendingCoverFile) {
+          toast('Uploading cover image...', 'success');
+          const path = `blogs/${currentBlog.id}/cover_${Date.now()}_${pendingCoverFile.name}`;
+          currentBlog.image = await uploadImage(pendingCoverFile, path, pct => {
+            if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading ${pct}%`;
+          });
+          pendingCoverFile = null;
+        }
+
+        // Upload any pending section images
+        for (const sec of currentBlog.sections) {
+          for (const block of (sec.content || [])) {
+            if (block.type === 'image' && pendingSectionFiles[block.id]) {
+              const file = pendingSectionFiles[block.id];
+              const path = `blogs/${currentBlog.id}/section_${block.id}_${Date.now()}_${file.name}`;
+              if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading image...`;
+              block.src = await uploadImage(file, path);
+              delete pendingSectionFiles[block.id];
+            }
+          }
+        }
+
+        await dbSave(currentBlog);
+        document.getElementById('previewLink').href = `blog-post.html?id=${currentBlog.id}`;
+        toast('Post saved successfully!', 'success');
+      } catch (e) {
+        console.error(e);
+        toast('Error saving post. Check console.', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Post'; }
+      }
+    }
+
+    /* ── Cover Image — stage file, preview immediately ── */
+    let pendingCoverFile = null;
+    let pendingSectionFiles = {}; // blockId → File
+
+    function handleImageUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      pendingCoverFile = file;
+      // Show local preview instantly (object URL, not uploaded yet)
+      const url = URL.createObjectURL(file);
+      const previewImg = document.getElementById('imagePreviewImg');
+      previewImg.src = url;
+      document.getElementById('imagePreview').style.display = 'block';
+    }
+
+    function removeImage() {
+      pendingCoverFile = null;
+      currentBlog.image = '';
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('imagePreviewImg').src = '';
+      document.getElementById('fImage').value = '';
+    }
+
+    // Drag-over feedback
+    const uploadArea = document.getElementById('imageUploadArea');
+    uploadArea.addEventListener('dragover', () => uploadArea.classList.add('drag-over'));
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', () => uploadArea.classList.remove('drag-over'));
+
+    /* ── Sections ── */
+    function renderSections() {
+      const container = document.getElementById('sectionsContainer');
+      if (!currentBlog.sections || currentBlog.sections.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:1.5rem 0;">No sections yet. Add your first section above.</p>`;
+        return;
+      }
+      container.innerHTML = currentBlog.sections.map((s, i) => buildSectionHTML(s, i)).join('');
+    }
+
+    function buildSectionHTML(section, idx) {
+      const contentHTML = (section.content || []).map((c, ci) => buildContentBlockHTML(c, idx, ci)).join('');
+      return `
+        <div class="section-block" id="secBlock_${section.id}" data-section-id="${section.id}">
+          <div class="section-block-header" onclick="toggleSection('${section.id}')">
+            <span class="section-drag-handle"><i class="fas fa-grip-vertical"></i></span>
+            <span class="section-number">§ ${idx + 1}</span>
+            <span class="section-title-preview">${section.header || 'Untitled Section'}</span>
+            <button class="btn btn-danger btn-sm btn-icon" style="margin-left:auto" onclick="event.stopPropagation();removeSection('${section.id}')" title="Delete section"><i class="fas fa-trash"></i></button>
+            <i class="fas fa-chevron-down section-collapse-icon"></i>
+          </div>
+          <div class="section-block-body">
+            <input
+              class="section-header-input"
+              type="text"
+              placeholder="Section header..."
+              value="${escapeAttr(section.header || '')}"
+              onchange="updateSectionHeader('${section.id}', this.value)"
+              oninput="updateSectionHeader('${section.id}', this.value)"
+              style="width:100%"
+            >
+            <div class="content-blocks" id="contentBlocks_${section.id}">
+              ${contentHTML}
+            </div>
+            <div class="add-content-row">
+              <button class="add-content-btn" onclick="addContentBlock('${section.id}','paragraph')"><i class="fas fa-paragraph"></i> Add Paragraph</button>
+              <button class="add-content-btn" onclick="addContentBlock('${section.id}','bullets')"><i class="fas fa-list-ul"></i> Add Bullet Points</button>
+              <button class="add-content-btn" onclick="addContentBlock('${section.id}','image')"><i class="fas fa-image"></i> Add Image</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function buildContentBlockHTML(block, secIdx, blockIdx) {
+      if (block.type === 'paragraph') {
+        return `
+          <div class="content-block" id="cb_${block.id}">
+            <div class="content-block-header">
+              <span class="content-block-type"><i class="fas fa-paragraph" style="color:var(--primary-light)"></i> Paragraph</span>
+              <button class="btn btn-danger btn-sm btn-icon" style="margin-left:auto" onclick="removeContentBlock('${block.id}')" title="Delete"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="content-block-body">
+              <textarea placeholder="Write your paragraph here..." onchange="updateBlockText('${block.id}',this.value)" oninput="updateBlockText('${block.id}',this.value)">${escapeHTML(block.text || '')}</textarea>
+            </div>
+          </div>`;
+      }
+      if (block.type === 'bullets') {
+        const items = (block.items || []).map((item, ii) => `
+          <div class="bullet-row" id="bulletRow_${block.id}_${ii}">
+            <input type="text" value="${escapeAttr(item)}" placeholder="Bullet point..." onchange="updateBulletItem('${block.id}',${ii},this.value)" oninput="updateBulletItem('${block.id}',${ii},this.value)">
+            <button class="bullet-delete" onclick="removeBulletItem('${block.id}',${ii})" title="Remove"><i class="fas fa-times"></i></button>
+          </div>`).join('');
+        return `
+          <div class="content-block" id="cb_${block.id}">
+            <div class="content-block-header">
+              <span class="content-block-type"><i class="fas fa-list-ul" style="color:var(--primary-light)"></i> Bullet Points</span>
+              <button class="btn btn-danger btn-sm btn-icon" style="margin-left:auto" onclick="removeContentBlock('${block.id}')" title="Delete"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="content-block-body">
+              <div class="bullets-list" id="bulletsList_${block.id}">${items}</div>
+              <button class="add-bullet-btn" onclick="addBulletItem('${block.id}')"><i class="fas fa-plus"></i> Add bullet</button>
+            </div>
+          </div>`;
+      }
+      if (block.type === 'image') {
+        const hasImg = block.src && block.src.length > 10;
+        const previewHTML = hasImg
+          ? `<div class="sec-img-preview" id="secImgPreview_${block.id}">
+               <img src="${block.src}" alt="${escapeAttr(block.caption||'')}">
+               <button class="image-preview-remove" onclick="removeSecImage('${block.id}')">✕ Remove</button>
+             </div>`
+          : `<div class="sec-img-preview" id="secImgPreview_${block.id}" style="display:none;height:0;border:none;margin:0">
+               <img src="" alt="">
+               <button class="image-preview-remove" onclick="removeSecImage('${block.id}')">✕ Remove</button>
+             </div>`;
+        return `
+          <div class="content-block" id="cb_${block.id}">
+            <div class="content-block-header">
+              <span class="content-block-type"><i class="fas fa-image" style="color:var(--primary-light)"></i> Image</span>
+              <button class="btn btn-danger btn-sm btn-icon" style="margin-left:auto" onclick="removeContentBlock('${block.id}')" title="Delete"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="content-block-body">
+              <div class="image-upload-area" style="padding:1.25rem;" onclick="document.getElementById('secImgInput_${block.id}').click()">
+                <input type="file" id="secImgInput_${block.id}" accept="image/*" style="display:none" onchange="handleSecImageUpload('${block.id}', this)">
+                <div class="upload-icon" style="font-size:1.25rem"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p class="upload-text" style="font-size:0.8rem">Click to upload section image</p>
+              </div>
+              ${previewHTML}
+              <input type="text" placeholder="Caption (optional)..." value="${escapeAttr(block.caption||'')}"
+                style="margin-top:0.5rem;font-size:0.82rem"
+                onchange="updateSecImageCaption('${block.id}',this.value)"
+                oninput="updateSecImageCaption('${block.id}',this.value)">
+            </div>
+          </div>`;
+      }
+      return '';
+    }
+
+    function handleSecImageUpload(blockId, input) {
+      const file = input.files[0];
+      if (!file) return;
+      // Stage the file — it will be uploaded on Save
+      pendingSectionFiles[blockId] = file;
+      // Show instant local preview via object URL
+      const url = URL.createObjectURL(file);
+      currentBlog.sections.forEach(s => {
+        const b = (s.content||[]).find(c => c.id === blockId);
+        if (b) b.src = url; // temp URL for preview, replaced on save
+      });
+      const preview = document.getElementById('secImgPreview_' + blockId);
+      if (preview) {
+        preview.querySelector('img').src = url;
+        preview.style.display = 'block';
+        preview.style.height = '180px';
+        preview.style.border = '';
+        preview.style.margin = '';
+      }
+    }
+
+    function removeSecImage(blockId) {
+      currentBlog.sections.forEach(s => {
+        const b = (s.content||[]).find(c => c.id === blockId);
+        if (b) b.src = '';
+      });
+      const preview = document.getElementById('secImgPreview_' + blockId);
+      if (preview) {
+        preview.style.display = 'none';
+        preview.style.height = '0';
+        preview.style.border = 'none';
+        preview.style.margin = '0';
+        preview.querySelector('img').src = '';
+      }
+      const input = document.getElementById('secImgInput_' + blockId);
+      if (input) input.value = '';
+    }
+
+    function updateSecImageCaption(blockId, val) {
+      currentBlog.sections.forEach(s => {
+        const b = (s.content||[]).find(c => c.id === blockId);
+        if (b) b.caption = val;
+      });
+    }
+
+    function toggleSection(id) {
+      document.getElementById('secBlock_' + id).classList.toggle('collapsed');
+    }
+
+    function addSection() {
+      collectSections(); // sync first
+      const s = { id: 'sec_' + Date.now(), header: '', content: [] };
+      currentBlog.sections.push(s);
+      renderSections();
+      // scroll to new section
+      setTimeout(() => {
+        const el = document.getElementById('secBlock_' + s.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+
+    function removeSection(id) {
+      collectSections();
+      currentBlog.sections = currentBlog.sections.filter(s => s.id !== id);
+      renderSections();
+    }
+
+    function updateSectionHeader(id, val) {
+      const s = currentBlog.sections.find(s => s.id === id);
+      if (s) {
+        s.header = val;
+        const preview = document.querySelector(`#secBlock_${id} .section-title-preview`);
+        if (preview) preview.textContent = val || 'Untitled Section';
+      }
+    }
+
+    function addContentBlock(sectionId, type) {
+      collectSections();
+      const s = currentBlog.sections.find(s => s.id === sectionId);
+      if (!s) return;
+      if (!s.content) s.content = [];
+      const block = { id: 'cb_' + Date.now(), type };
+      if (type === 'paragraph') block.text = '';
+      if (type === 'bullets') block.items = [''];
+      if (type === 'image') { block.src = ''; block.caption = ''; }
+      s.content.push(block);
+      // Re-render just the content area
+      const container = document.getElementById('contentBlocks_' + sectionId);
+      if (container) {
+        container.innerHTML = s.content.map((c, ci) => buildContentBlockHTML(c, 0, ci)).join('');
+      }
+    }
+
+    function removeContentBlock(blockId) {
+      currentBlog.sections.forEach(s => {
+        s.content = (s.content || []).filter(c => c.id !== blockId);
+      });
+      const el = document.getElementById('cb_' + blockId);
+      if (el) el.remove();
+    }
+
+    function updateBlockText(blockId, val) {
+      currentBlog.sections.forEach(s => {
+        const b = (s.content || []).find(c => c.id === blockId);
+        if (b) b.text = val;
+      });
+    }
+
+    function updateBulletItem(blockId, idx, val) {
+      currentBlog.sections.forEach(s => {
+        const b = (s.content || []).find(c => c.id === blockId);
+        if (b && b.items) b.items[idx] = val;
+      });
+    }
+
+    function addBulletItem(blockId) {
+      currentBlog.sections.forEach(s => {
+        const b = (s.content || []).find(c => c.id === blockId);
+        if (b) {
+          b.items = b.items || [];
+          b.items.push('');
+          const list = document.getElementById('bulletsList_' + blockId);
+          if (list) {
+            const ii = b.items.length - 1;
+            const row = document.createElement('div');
+            row.className = 'bullet-row';
+            row.id = `bulletRow_${blockId}_${ii}`;
+            row.innerHTML = `
+              <input type="text" value="" placeholder="Bullet point..." onchange="updateBulletItem('${blockId}',${ii},this.value)" oninput="updateBulletItem('${blockId}',${ii},this.value)">
+              <button class="bullet-delete" onclick="removeBulletItem('${blockId}',${ii})" title="Remove"><i class="fas fa-times"></i></button>`;
+            list.appendChild(row);
+            row.querySelector('input').focus();
+          }
+        }
+      });
+    }
+
+    function removeBulletItem(blockId, idx) {
+      currentBlog.sections.forEach(s => {
+        const b = (s.content || []).find(c => c.id === blockId);
+        if (b && b.items) {
+          b.items.splice(idx, 1);
+          // re-render bullets list
+          const list = document.getElementById('bulletsList_' + blockId);
+          if (list) {
+            list.innerHTML = b.items.map((item, ii) => `
+              <div class="bullet-row" id="bulletRow_${blockId}_${ii}">
+                <input type="text" value="${escapeAttr(item)}" placeholder="Bullet point..." onchange="updateBulletItem('${blockId}',${ii},this.value)" oninput="updateBulletItem('${blockId}',${ii},this.value)">
+                <button class="bullet-delete" onclick="removeBulletItem('${blockId}',${ii})" title="Remove"><i class="fas fa-times"></i></button>
+              </div>`).join('');
+          }
+        }
+      });
+    }
+
+    function collectSections() {
+      // sync DOM → currentBlog.sections
+      if (!currentBlog) return [];
+      currentBlog.sections = (currentBlog.sections || []).map(s => {
+        // header
+        const headerInput = document.querySelector(`#secBlock_${s.id} .section-header-input`);
+        if (headerInput) s.header = headerInput.value;
+        // content
+        s.content = (s.content || []).map(block => {
+          if (block.type === 'paragraph') {
+            const ta = document.querySelector(`#cb_${block.id} textarea`);
+            if (ta) block.text = ta.value;
+          }
+          if (block.type === 'bullets') {
+            const inputs = document.querySelectorAll(`#bulletsList_${block.id} input`);
+            if (inputs.length > 0) block.items = Array.from(inputs).map(i => i.value);
+          }
+          if (block.type === 'image') {
+            const capInput = document.querySelector(`#cb_${block.id} input[type="text"]`);
+            if (capInput) block.caption = capInput.value;
+            // src is updated live via handleSecImageUpload, no DOM sync needed
+          }
+          return block;
+        });
+        return s;
+      });
+      return currentBlog.sections;
+    }
+
+    /* ══ DELETE ══ */
+    function openConfirm(id) {
+      deleteTarget = id;
+      document.getElementById('confirmOverlay').classList.add('open');
+    }
+    function closeConfirm() {
+      deleteTarget = null;
+      document.getElementById('confirmOverlay').classList.remove('open');
+    }
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      if (deleteTarget) {
+        try {
+          await dbRemove(deleteTarget);
+          toast('Post deleted.', 'success');
+        } catch { toast('Error deleting post.', 'error'); }
+        closeConfirm();
+        renderList();
+        renderStats();
+      }
+    });
+
+    /* ══ TOAST ══ */
+    function toast(msg, type = 'success') {
+      const wrap = document.getElementById('toastWrap');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+      wrap.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    /* ══ HELPERS ══ */
+    function escapeHTML(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function escapeAttr(str) {
+      return str.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    /* ══ MOBILE SIDEBAR ══ */
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    /* ══ EXPOSE TO WINDOW (required for onclick in type=module) ══ */
+    window.showView              = showView;
+    window.savePost              = savePost;
+    window.openConfirm           = openConfirm;
+    window.closeConfirm          = closeConfirm;
+    window.addSection            = addSection;
+    window.removeSection         = removeSection;
+    window.toggleSection         = toggleSection;
+    window.addContentBlock       = addContentBlock;
+    window.removeContentBlock    = removeContentBlock;
+    window.handleImageUpload     = handleImageUpload;
+    window.removeImage           = removeImage;
+    window.handleSecImageUpload  = handleSecImageUpload;
+    window.removeSecImage        = removeSecImage;
+    window.updateSecImageCaption = updateSecImageCaption;
+    window.updateSectionHeader   = updateSectionHeader;
+    window.addBulletItem         = addBulletItem;
+    window.removeBulletItem      = removeBulletItem;
+    window.updateBlockText       = updateBlockText;
+    window.updateBulletItem      = updateBulletItem;
+
+    /* ══ INIT ══ */
+    (async () => {
+      await seedIfEmpty();
+      showView('list');
+    })();
+  </script>
+</body>
+</html>
